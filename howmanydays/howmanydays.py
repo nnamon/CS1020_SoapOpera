@@ -42,7 +42,7 @@
 import argparse
 
 
-class DateFormat:
+class DateType:
     # We use a class to represent our date format to group parsing related
     # functionality.
 
@@ -50,8 +50,8 @@ class DateFormat:
         # Implementation Sub Problem 2
         # We use a custom argument type to parse the user defined string.
         # The conditions our string must satisfy are:
-        # 1. Of length 6:
-        if len(v) != 6:
+        # 1. Of length 8:
+        if len(v) != 8:
             raise argparse.ArgumentTypeError("Must be of length 6")
         # 2. Must be numerical
         elif not v.isdigit():
@@ -62,6 +62,9 @@ class DateFormat:
         # makes semantic sense while parsing (i.e. the date actually exists).
         # For example, there is no such date as the 32nd of December 1992.
 
+        # Ignore the following comments and the commented year parsing. The
+        # provided input is in the form ddmmyyyy not ddmmyy so the input is no
+        # longer ambiguous.
         # Parsing the year: Given only two numbers to represent the year, this
         # can be tricky as 15 can be understood as 2015 while 93 can be
         # understood as 1993. We will take the following interpretation:
@@ -69,11 +72,12 @@ class DateFormat:
         # 00-69 as 2000-2069
 
         yeardigits = int(v[4:])
-        if yeardigits < 70:
-            self.year = 2000 + yeardigits
-        else:
-            self.year = 1900 + yeardigits
+        # if yeardigits < 70:
+        #     self.year = 2000 + yeardigits
+        # else:
+        #     self.year = 1900 + yeardigits
 
+        self.year = yeardigits
         # Parsing the month: This value can only be between 1-12.
         monthdigits = int(v[2:4])
         if not 1 <= monthdigits <= 12:
@@ -86,7 +90,7 @@ class DateFormat:
         # year (in the case of Februrary).
 
         daydigits = int(v[:2])
-        if daydigits > DateFormat.days_in_month(self.month, self.year):
+        if daydigits > DateType.days_in_month(self.month, self.year):
             raise argparse.ArgumentTypeError("That date does not exist!")
         self.day = daydigits
 
@@ -96,7 +100,7 @@ class DateFormat:
         # If the month is February, check if the year is a leap year. If the
         # year is a leap year, February has 29 days, else it has 28 days.
         if month == 2:
-            if DateFormat.is_leap_year(year):
+            if DateType.is_leap_year(year):
                 return 29
             else:
                 return 28
@@ -136,7 +140,7 @@ class DateFormat:
 
 
 def calculate_days(dateone, datetwo):
-    # Given two DateFormats, calculate the number of dates between the two.
+    # Given two DateTypes, calculate the number of dates between the two.
 
     # Implementation Sub Problem 4
     # First, we determine which is the starting date to increment.
@@ -157,7 +161,7 @@ def calculate_days(dateone, datetwo):
     while True:
         # At each step, we will find the number of days in the current month,
         # then add it to the total number of days.
-        total_days += DateFormat.days_in_month(current_month, current_year)
+        total_days += DateType.days_in_month(current_month, current_year)
         if current_month == end.month and current_year == end.year:
             break
         else:
@@ -170,7 +174,7 @@ def calculate_days(dateone, datetwo):
     # Once the month and year targets have been met, we settle the start
     # and end date offsets
     start_offset = start.day
-    end_offset = DateFormat.days_in_month(end.month, end.year) - end.day
+    end_offset = DateType.days_in_month(end.month, end.year) - end.day
     total_days = total_days - (start_offset + end_offset)
     return total_days
 
@@ -181,10 +185,10 @@ def main():
     # string.
     parser = argparse.ArgumentParser(description="Find the number of days "
                                      "between two dates. The two dates must be "
-                                     "in the form ddmmyy. The number of days "
+                                     "in the form ddmmyyyy. The number of days "
                                      "does not include the end date.")
-    parser.add_argument("date_one", type=DateFormat, help="Date One")
-    parser.add_argument("date_two", type=DateFormat, help="Date Two")
+    parser.add_argument("date_one", type=DateType, help="Date One")
+    parser.add_argument("date_two", type=DateType, help="Date Two")
 
     args = parser.parse_args()
 
